@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-LD theme: start with nothing
+LD theme: Delay the inevitable
 @author: ZHANG Chenyu
 """
 
@@ -14,7 +14,7 @@ from gameRole import *
 
 # 注意存放文件的文件夹命名不要有中文，不然会找不到同一个文件夹下的文件，比如gameRole
 
-SCREEN_WIDTH = 1000
+SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 600
 # initialize the game
 pygame.init()
@@ -36,6 +36,7 @@ resources0 = pygame.image.load('resources/character/fire/firen_0.bmp')
 resources2 = pygame.image.load('resources/character/fire/firen_2.bmp')
 resources_ball = pygame.image.load('resources/character/fire/firen_ball.bmp')
 resources_item = pygame.image.load('resources/item/resource.bmp')
+resources_health = pygame.image.load('resources/item/health.bmp')
 
 player_rect = []   # 注意这个rect取的方法，第一二个点是图片的左上角坐标，然后两个数值是宽和高
 player_rect.append(pygame.Rect(15, 10, 45, 70))
@@ -70,7 +71,9 @@ player_fire_img.append(resources2.subsurface(player_fire_rect[4]))
 player_fire_img.append(resources2.subsurface(player_fire_rect[5]))
 
 fire_ball_img = resources_ball.subsurface(pygame.Rect(25, 180, 60, 60))
+fire_bullet_img = resources_ball.subsurface(pygame.Rect(5, 22, 76, 40))
 resource_img = resources_item.subsurface(pygame.Rect(295, 5, 57, 53))
+milk_img = resources_health.subsurface(pygame.Rect(15, 10, 18, 30))
 
 # 开始画面
 def open():
@@ -79,23 +82,23 @@ def open():
     while 1:
         clock.tick(60)
         screen.fill(0)
-        text1 = font.render(str("You have only one single mission"), True, (255, 255, 255))
+        text1 = font.render(str("You need to collect the boxes of resource"), True, (255, 255, 255))
         text_rect1 = text1.get_rect()
         text_rect1.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 200]
 
-        text2 = font.render(str("Collect the boxes of resource"), True, (255, 255, 255))
+        text2 = font.render(str("So that you can delay the inevitable fatal fire wall"), True, (255, 255, 255))
         text_rect2 = text2.get_rect()
         text_rect2.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 150]
 
-        text3 = font.render(str("And delay the inevitable fatal fire wall"), True, (255, 255, 255))
+        text3 = font.render(str("And you should also catch milk to make you stronger"), True, (255, 255, 255))
         text_rect3 = text3.get_rect()
         text_rect3.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100]
 
-        text4 = font.render(str("Try to collect 10 boxes"), True, (255, 255, 255))
+        text4 = font.render(str("Pay attention to the fire bullet, they are also fatal"), True, (255, 255, 255))
         text_rect4 = text4.get_rect()
         text_rect4.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50]
 
-        text5 = font.render(str("And you shall know something"), True, (255, 255, 255))
+        text5 = font.render(str("Keep it up and you will find something soon"), True, (255, 255, 255))
         text_rect5 = text5.get_rect()
         text_rect5.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 ]
 
@@ -107,7 +110,7 @@ def open():
         text_rect7 = text7.get_rect()
         text_rect7.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 100]
 
-        text8 = font.render(str("And use direction keys to control"), True, (255, 255, 255))
+        text8 = font.render(str("And use direction keys to control the role"), True, (255, 255, 255))
         text_rect8 = text8.get_rect()
         text_rect8.center = [SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 150]
 
@@ -131,6 +134,33 @@ def open():
                 pygame.quit()
                 exit()
 
+def fail():
+    font = pygame.font.Font(None, 36)  # 字体大小的
+    clock = pygame.time.Clock()
+    while 1:
+        clock.tick(60)
+        screen.fill(0)
+        text1 = font.render(str("Sorry you almost make it"), True, (255, 255, 255))
+        text_rect1 = text1.get_rect()
+        text_rect1.center = [SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 100]
+
+        text2 = font.render(str("Tap space to try again"), True, (255, 255, 255))
+        text_rect2 = text2.get_rect()
+        text_rect2.center = [SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 50]
+
+        screen.blit(text1, text_rect1)
+        screen.blit(text2, text_rect2)
+
+        key_pressed = pygame.key.get_pressed()
+        if key_pressed[K_SPACE]:
+            return
+
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
 
 def win():
     font = pygame.font.Font(None, 36)  # 字体大小的
@@ -183,16 +213,22 @@ def win():
 def game():
     clock = pygame.time.Clock()
 
-    player_number = 0
     player_pos = [10, SCREEN_HEIGHT/2]
     player = Player(player_img, player_move_img, player_fire_img, player_pos, SCREEN_WIDTH, SCREEN_HEIGHT)
 
     resource_group = pygame.sprite.Group()
     resource_frequence = 0
     resource_interval = 100
-    resource_list = []
+    milk_group = pygame.sprite.Group()
+    milk_frequence = 0
+    milk_interval = 200
+    fire_ball_group = pygame.sprite.Group()
+    fire_ball_frequence = 0
+    fire_ball_interval = 100
+
     fire_wall = Fire_wall(fire_ball_img, SCREEN_WIDTH)
     resource_count = 0
+    milk_count = 0
 
     while 1:
         # 控制游戏最大帧率为60
@@ -201,12 +237,25 @@ def game():
         screen.fill(0)
         # screen.blit(background, (0, 0))
 
-        if resource_frequence == resource_interval:
+        if resource_frequence == resource_interval and fire_wall.rect.left > 10:
             pos_x = random.randint(0, fire_wall.rect.left)
-            pos_y = random.randint(0, SCREEN_HEIGHT)
-            resource = Resource(resource_img, (pos_x, pos_y))
+            speed = random.randint(1, 5)
+            resource = Award(resource_img, pos_x, speed)
             resource_group.add(resource)
             resource_frequence = 0
+
+        if milk_frequence == milk_interval and fire_wall.rect.left > 10:
+            pos_x = random.randint(0, fire_wall.rect.left)
+            speed = random.randint(1, 5)
+            resource = Award(milk_img, pos_x, speed)
+            milk_group.add(resource)
+            milk_frequence = 0
+
+        if fire_ball_frequence == fire_ball_interval and fire_wall.rect.left > 10:
+            pos_y = random.randint(50, SCREEN_HEIGHT - 50)
+            ball = Fire_ball(fire_bullet_img, pos_y, SCREEN_WIDTH)
+            fire_ball_group.add(ball)
+            fire_ball_frequence = 0
 
         if pygame.sprite.collide_rect(player, fire_wall) and not player.flag_fire:
             return 1
@@ -218,6 +267,14 @@ def game():
                 resource_group.remove(one)
                 fire_wall.move_right()
                 resource_count += 1
+        for one in milk_group:
+            if pygame.sprite.collide_rect(player, one):
+                milk_group.remove(one)
+                milk_count += 1
+        for one in fire_ball_group:
+            if not player.flag_fire and pygame.sprite.collide_rect(player, one):
+                fire_ball_group.remove(one)
+                return 1
 
         key_pressed = pygame.key.get_pressed()
         player.flag_move = False
@@ -243,7 +300,7 @@ def game():
                 # print("debug1: ", player.orientation)
                 player.orientation = 1
 
-        if resource_count >= 10:
+        if milk_count >= 5:
             player.on_fire()
 
         if player.flag_fire:
@@ -260,9 +317,18 @@ def game():
         for one in fire_wall.rect_list:
             screen.blit(fire_ball_img, one)
         for one in resource_group:
-            screen.blit(resource_img, one)
+            one.fall()
+            screen.blit(one.img, one)
+        for one in milk_group:
+            one.fall()
+            screen.blit(one.img, one)
+        for one in fire_ball_group:
+            one.move_left()
+            screen.blit(one.img, one)
 
         resource_frequence += 1
+        milk_frequence += 1
+        fire_ball_frequence += 1
         # 更新屏幕
         pygame.display.update()
 
@@ -276,7 +342,7 @@ if __name__ == '__main__':
     while(1):
         res = game()
         if res:
-            open()
+            fail()
         else:
             win()
 

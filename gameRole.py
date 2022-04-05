@@ -8,24 +8,39 @@ import pygame
 from pygame.locals import *
 
 # the class bullet
-class Resource(pygame.sprite.Sprite):
-    def __init__(self, resource_img, pos):
+class Award(pygame.sprite.Sprite):
+    def __init__(self, resource_img, pos_x, speed):
         pygame.sprite.Sprite.__init__(self)
-        self.resource_img = resource_img
-        self.rect = self.resource_img.get_rect()
-        self.rect.center = pos
+        self.img = resource_img
+        self.rect = self.img.get_rect()
+        self.rect.center = (pos_x, 0)
+        self.speed = speed
+
+    def fall(self):
+        self.rect.top += self.speed
+
+class Fire_ball(pygame.sprite.Sprite):
+    def __init__(self, fire_img, pos_y, WIDTH):
+        pygame.sprite.Sprite.__init__(self)
+        self.img = pygame.transform.flip(fire_img, True, False)
+        self.rect = self.img.get_rect()
+        self.rect.center = (WIDTH, pos_y)
+        self.speed = 10
+
+    def move_left(self):
+        self.rect.left -= self.speed
 
 class Fire_wall(pygame.sprite.Sprite):
     def __init__(self, fire_img, WIDTH):
         pygame.sprite.Sprite.__init__(self)
-        self.fire = pygame.transform.rotate(fire_img, 90)
-        self.rect = self.fire.get_rect()
+        self.img = pygame.transform.rotate(fire_img, 90)
+        self.rect = self.img.get_rect()
         self.rect[3] = 1000
         self.rect.center = (WIDTH - 100, 200)
         self.rect_list = []
         self.WIDTH = WIDTH
         for i in range(20):
-            self.rect_list.append(self.fire.get_rect())
+            self.rect_list.append(self.img.get_rect())
 
         for i in range(20):
             self.rect_list[i].center = (WIDTH - 100, i*50 + 10)
@@ -35,68 +50,17 @@ class Fire_wall(pygame.sprite.Sprite):
             if self.rect_list[i].left <= 0:
                 self.rect_list[i].left = 0
             else:
-                self.rect_list[i].left -= 1
-        self.rect.left -= 1
+                self.rect_list[i].left -= 0.5
+        self.rect.left -= 0.5
 
     def move_right(self):
         for i in range(20):
             if self.rect_list[i].left >= self.WIDTH - self.rect.width:
                 self.rect_list[i].left = self.WIDTH - self.rect.width
             else:
-                self.rect_list[i].left += 60
-        self.rect.left += 60
+                self.rect_list[i].left += 100
+        self.rect.left += 100
 
-# class FriendCross(Friend):
-#     def __init__(self, number, init_pos, font, WIDTH):
-#         Friend.__init__(self, number, init_pos, font)
-#         self.WIDTH = WIDTH
-#         if init_pos[0] < 400:
-#             self.move_mode = 0  # 向右移动
-#         else:
-#             self.move_mode = 1  # 向左
-#
-#     def move(self):
-#         if self.move_mode == 0:
-#             self.rect.right += self.speed
-#         if self.move_mode == 1:
-#             self.rect.left -= self.speed
-#         if self.rect.left <= 0:
-#             self.move_mode = 0
-#         if self.rect.right >= self.WIDTH:
-#             self.move_mode = 1
-#         self.rect.top += self.speed/2
-#
-# class FriendVari(Friend):
-#     def __init__(self, number, init_pos, font):
-#         Friend.__init__(self, number, init_pos, font)
-#         self.static = False
-#         self.threshold = 50
-#         self.count = 0
-#
-#     def increment(self):
-#         self.count += 1
-#         if self.count >= self.threshold:
-#             self.number += 1
-#             self.text = self.font.render(str(self.number), True, (255, 255, 255))
-#             self.count = 0
-#
-# class FriendDisappear(Friend):
-#     def __init__(self, number, init_pos, font):
-#         Friend.__init__(self, number, init_pos, font)
-#         self.disappear = True
-#         self.count = 0
-#         self.speed = 1
-#         self.threshold = 50
-#         self.show = True
-#
-#     def show_count(self):
-#         self.count += 1
-#         if self.count >= self.threshold:
-#             self.count = 0
-#             if self.show:
-#                 self.show = False
-#             else:
-#                 self.show = True
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, player_img, player_move_img, player_fire_img, init_pos, WIDTH, HEIGHT):
